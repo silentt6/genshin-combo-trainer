@@ -2,14 +2,22 @@ export type InputKind = 'mouse-left' | 'mouse-right' | 'shift';
 
 export type InputAction = 'down' | 'up';
 
-export type Verdict = 'perfect' | 'good' | 'early' | 'late' | 'miss';
+export type ActionKind = 'tap' | 'hold';
+
+export type Verdict =
+	| 'perfect'
+	| 'good'
+	| 'early'
+	| 'late'
+	| 'miss'
+	| 'released-early';
 
 export interface Step {
 	id: number;
-	input: InputKind;
-	action: InputAction;
+	inputs: InputKind[];
+	actionKind: ActionKind;
 	targetMs: number;
-	holdDurationMs?: number;
+	minHoldMs?: number;
 }
 
 export interface Combo {
@@ -31,13 +39,17 @@ export interface JudgeResult {
 	stepId: number;
 	verdict: Verdict;
 	deltaMs: number;
-	matchedInput: InputEvent | null;
+	matchedDownInput: InputEvent | null;
+	matchedUpInput: InputEvent | null;
+	holdDurationMs?: number;
 }
 
 export const FRAME_MS = 1000 / 60;
 
 export const JUDGE_WINDOWS_FRAMES = {
-	perfect: 2,
-	good: 4,
-	lateEarly: 6,
+	perfect: 4,
+	good: 8,
+	lateEarly: 10,
 } as const;
+
+export const DEFAULT_MIN_HOLD_MS = 200;
