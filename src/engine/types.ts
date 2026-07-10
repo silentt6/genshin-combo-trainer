@@ -10,7 +10,8 @@ export type Verdict =
 	| 'early'
 	| 'late'
 	| 'miss'
-	| 'released-early';
+	| 'released-early'
+	| 'stray';
 
 export interface Step {
 	id: number;

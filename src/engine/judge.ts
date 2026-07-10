@@ -55,6 +55,10 @@ export class Judge {
 		return this.resolveHoldRelease(step, downEvent, now, allEvents);
 	}
 
+	isConsumed(sequence: number): boolean {
+		return this.consumedSequences.has(sequence);
+	}
+
 	private resolveHoldRelease(
 		step: Step,
 		downEvent: InputEvent,

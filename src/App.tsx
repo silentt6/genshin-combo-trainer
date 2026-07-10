@@ -4,9 +4,10 @@ import { InputCapture } from './engine/inputCapture';
 import { Judge } from './engine/judge';
 import { GameLoop } from './engine/gameLoop';
 import { Renderer } from './engine/renderer';
-import { FRAME_MS, JUDGE_WINDOWS_FRAMES, type Combo } from './engine/types';
+import { createHudApi } from './Hud';
+import type { Combo } from './engine/types';
 
-const MISS_WINDOW_MS = JUDGE_WINDOWS_FRAMES.lateEarly * FRAME_MS;
+const COUNTDOWN_MS = 3000;
 
 const testCombo: Combo = {
 	id: 'test-1',
@@ -33,6 +34,7 @@ const testCombo: Combo = {
 
 export default function App() {
 	let canvasRef: HTMLCanvasElement | undefined;
+	const { hudApi, Hud } = createHudApi();
 
 	onMount(() => {
 		if (!canvasRef) return;
@@ -44,25 +46,44 @@ export default function App() {
 
 		capture.start();
 
-		const comboStartMs = performance.now();
-		let lastSeq = -1;
+		const comboStartMs = performance.now() + COUNTDOWN_MS;
 		const pendingSteps = [...testCombo.steps];
+		const handledStray = new Set<number>();
 
 		const loop = new GameLoop(
 			(now) => {
+				if (now < comboStartMs) return;
+
 				const allEvents = buffer.getUnconsumed(-1);
 
 				for (let i = pendingSteps.length - 1; i >= 0; i--) {
 					const step = pendingSteps[i];
 					const result = judge.classify(step, comboStartMs, now, allEvents);
 					if (result !== null) {
-						console.log(result);
+						hudApi.reportVerdict(result.verdict);
 						pendingSteps.splice(i, 1);
 					}
+				}
+
+				for (const event of allEvents) {
+					if (event.action !== 'down') continue;
+					if (judge.isConsumed(event.sequence)) continue;
+					if (handledStray.has(event.sequence)) continue;
+
+					handledStray.add(event.sequence);
+					hudApi.reportVerdict('stray');
 				}
 			},
 			(now) => {
 				renderer.render(now, testCombo, comboStartMs);
+
+				if (now < comboStartMs) {
+					hudApi.setCountdown(Math.ceil((comboStartMs - now) / 1000));
+				} else if (now < comboStartMs + 500) {
+					hudApi.setCountdown(0);
+				} else {
+					hudApi.setCountdown(null);
+				}
 			},
 		);
 
@@ -75,8 +96,9 @@ export default function App() {
 	});
 
 	return (
-		<div class="w-screen h-screen bg-neutral-900 flex items-center justify-center">
+		<div class="w-screen h-screen bg-neutral-900 relative overflow-hidden">
 			<canvas ref={canvasRef} class="w-full h-full block" />
+			<Hud />
 		</div>
 	);
 }
