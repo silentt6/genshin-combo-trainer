@@ -1,24 +1,27 @@
 import { createSignal, createEffect, onCleanup } from 'solid-js';
-import type { Verdict } from './engine/types';
+import type { JudgeResult, Verdict } from './engine/types';
 
 export interface HudApi {
-	reportVerdict: (verdict: Verdict) => void;
+	reportResult: (result: JudgeResult) => void;
 	setCountdown: (value: number | null) => void;
 	reset: () => void;
 }
 
-interface VerdictEvent {
+interface FeedbackEvent {
 	verdict: Verdict;
+	label: string;
 	id: number;
 }
 
 export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 	const [score, setScore] = createSignal(0);
 	const [streak, setStreak] = createSignal(0);
-	const [lastEvent, setLastEvent] = createSignal<VerdictEvent | null>(null);
+	const [lastFeedback, setLastFeedback] = createSignal<FeedbackEvent | null>(
+		null,
+	);
 	const [countdown, setCountdown] = createSignal<number | null>(null);
 
-	let verdictId = 0;
+	let eventId = 0;
 
 	const VERDICT_POINTS: Record<Verdict, number> = {
 		perfect: 100,
@@ -30,14 +33,19 @@ export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 		stray: 0,
 	};
 
-	const reportVerdict = (verdict: Verdict): void => {
-		setLastEvent({ verdict, id: verdictId++ });
-		setScore((s) => s + VERDICT_POINTS[verdict]);
+	const reportResult = (result: JudgeResult): void => {
+		const label =
+			result.phase === 'press' ? `Press: ${result.verdict}` : result.verdict;
+		setLastFeedback({ verdict: result.verdict, label, id: eventId++ });
+
+		if (!result.final) return;
+
+		setScore((s) => s + VERDICT_POINTS[result.verdict]);
 
 		if (
-			verdict === 'miss' ||
-			verdict === 'released-early' ||
-			verdict === 'stray'
+			result.verdict === 'miss' ||
+			result.verdict === 'released-early' ||
+			result.verdict === 'stray'
 		) {
 			setStreak(0);
 		} else {
@@ -48,7 +56,7 @@ export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 	const reset = (): void => {
 		setScore(0);
 		setStreak(0);
-		setLastEvent(null);
+		setLastFeedback(null);
 		setCountdown(null);
 	};
 
@@ -57,7 +65,7 @@ export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 		const [showFeedback, setShowFeedback] = createSignal(false);
 
 		createEffect(() => {
-			const event = lastEvent();
+			const event = lastFeedback();
 			if (event === null) return;
 
 			setShowFeedback(true);
@@ -95,11 +103,11 @@ export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 					<div class="text-white font-mono text-2xl">Streak: {streak()}</div>
 				</div>
 
-				{showFeedback() && lastEvent() && (
+				{showFeedback() && lastFeedback() && (
 					<div
-						class={`absolute top-16 left-1/2 -translate-x-1/2 text-4xl font-bold uppercase ${verdictColor(lastEvent()?.verdict)}`}
+						class={`absolute top-16 left-1/2 -translate-x-1/2 text-4xl font-bold uppercase ${verdictColor(lastFeedback()?.verdict)}`}
 					>
-						{lastEvent()?.verdict}
+						{lastFeedback()?.label}
 					</div>
 				)}
 
@@ -114,5 +122,5 @@ export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 		);
 	}
 
-	return { hudApi: { reportVerdict, setCountdown, reset }, Hud };
+	return { hudApi: { reportResult, setCountdown, reset }, Hud };
 }

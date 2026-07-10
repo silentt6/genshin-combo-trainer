@@ -1,4 +1,5 @@
 import { onMount, onCleanup } from 'solid-js';
+import { loadCombos, saveCombo } from './data/storage';
 import { InputRingBuffer } from './engine/ringBuffer';
 import { InputCapture } from './engine/inputCapture';
 import { Judge } from './engine/judge';
@@ -37,6 +38,13 @@ export default function App() {
 	const { hudApi, Hud } = createHudApi();
 
 	onMount(() => {
+		let combos = loadCombos();
+		if (combos.length === 0) {
+			saveCombo(testCombo);
+			combos = loadCombos();
+		}
+		const activeCombo = combos[0];
+
 		if (!canvasRef) return;
 
 		const buffer = new InputRingBuffer();
@@ -60,8 +68,10 @@ export default function App() {
 					const step = pendingSteps[i];
 					const result = judge.classify(step, comboStartMs, now, allEvents);
 					if (result !== null) {
-						hudApi.reportVerdict(result.verdict);
-						pendingSteps.splice(i, 1);
+						hudApi.reportResult(result);
+						if (result.final) {
+							pendingSteps.splice(i, 1);
+						}
 					}
 				}
 
@@ -71,12 +81,19 @@ export default function App() {
 					if (handledStray.has(event.sequence)) continue;
 
 					handledStray.add(event.sequence);
-					hudApi.reportVerdict('stray');
+					hudApi.reportResult({
+						stepId: -1,
+						verdict: 'stray',
+						deltaMs: 0,
+						matchedDownInput: null,
+						matchedUpInput: null,
+						final: true,
+						phase: 'tap',
+					});
 				}
 			},
 			(now) => {
-				renderer.render(now, testCombo, comboStartMs);
-
+				renderer.render(now, activeCombo, comboStartMs);
 				if (now < comboStartMs) {
 					hudApi.setCountdown(Math.ceil((comboStartMs - now) / 1000));
 				} else if (now < comboStartMs + 500) {

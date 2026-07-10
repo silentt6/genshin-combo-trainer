@@ -6,9 +6,17 @@ const GOOD_MS = JUDGE_WINDOWS_FRAMES.good * FRAME_MS;
 const MISS_MS = JUDGE_WINDOWS_FRAMES.lateEarly * FRAME_MS;
 const HOLD_RELEASE_TIMEOUT_MS = 3000;
 
+interface PendingHold {
+	downEvent: InputEvent;
+	targetAbsoluteMs: number;
+	minHoldMs: number;
+	pressVerdict: Verdict;
+	pressReported: boolean;
+}
+
 export class Judge {
 	private consumedSequences = new Set<number>();
-	private pendingHolds = new Map<number, InputEvent>();
+	private pendingHolds = new Map<number, PendingHold>();
 
 	classify(
 		step: Step,
@@ -18,10 +26,22 @@ export class Judge {
 	): JudgeResult | null {
 		const targetAbsoluteMs = comboStartMs + step.targetMs;
 
-		const existingDown = this.pendingHolds.get(step.id);
-
-		if (existingDown) {
-			return this.resolveHoldRelease(step, existingDown, now, allEvents);
+		const existing = this.pendingHolds.get(step.id);
+		if (existing) {
+			if (!existing.pressReported) {
+				existing.pressReported = true;
+				return {
+					stepId: step.id,
+					verdict: existing.pressVerdict,
+					deltaMs: existing.downEvent.timestamp - existing.targetAbsoluteMs,
+					matchedDownInput: existing.downEvent,
+					matchedUpInput: null,
+					pressVerdict: existing.pressVerdict,
+					final: false,
+					phase: 'press',
+				};
+			}
+			return this.resolveHoldRelease(step, existing, now, allEvents);
 		}
 
 		const downEvent = this.findBestMatch(
@@ -33,41 +53,60 @@ export class Judge {
 
 		if (downEvent === null) {
 			if (now > targetAbsoluteMs + MISS_MS) {
-				return this.missResult(step.id);
+				return this.missResult(
+					step.id,
+					step.actionKind === 'tap' ? 'tap' : 'press',
+				);
 			}
 			return null;
 		}
 
 		this.consumedSequences.add(downEvent.sequence);
 		const downDelta = downEvent.timestamp - targetAbsoluteMs;
+		const pressVerdict = this.verdictFromDelta(downDelta);
 
 		if (step.actionKind === 'tap') {
 			return {
 				stepId: step.id,
-				verdict: this.verdictFromDelta(downDelta),
+				verdict: pressVerdict,
 				deltaMs: downDelta,
 				matchedDownInput: downEvent,
 				matchedUpInput: null,
+				final: true,
+				phase: 'tap',
 			};
 		}
 
-		this.pendingHolds.set(step.id, downEvent);
-		return this.resolveHoldRelease(step, downEvent, now, allEvents);
-	}
+		const minHoldMs = step.minHoldMs ?? DEFAULT_MIN_HOLD_MS;
+		this.pendingHolds.set(step.id, {
+			downEvent,
+			targetAbsoluteMs,
+			minHoldMs,
+			pressVerdict,
+			pressReported: true,
+		});
 
-	isConsumed(sequence: number): boolean {
-		return this.consumedSequences.has(sequence);
+		return {
+			stepId: step.id,
+			verdict: pressVerdict,
+			deltaMs: downDelta,
+			matchedDownInput: downEvent,
+			matchedUpInput: null,
+			pressVerdict,
+			final: false,
+			phase: 'press',
+		};
 	}
 
 	private resolveHoldRelease(
 		step: Step,
-		downEvent: InputEvent,
+		pending: PendingHold,
 		now: number,
 		allEvents: InputEvent[],
 	): JudgeResult | null {
+		const { downEvent, targetAbsoluteMs, minHoldMs, pressVerdict } = pending;
+
 		const upEvent = this.findUpMatchAfter(allEvents, downEvent);
-		const downDelta =
-			downEvent.timestamp - (downEvent.timestamp - step.targetMs);
 
 		if (upEvent === null) {
 			if (now - downEvent.timestamp > HOLD_RELEASE_TIMEOUT_MS) {
@@ -75,9 +114,12 @@ export class Judge {
 				return {
 					stepId: step.id,
 					verdict: 'miss',
-					deltaMs: 0,
+					deltaMs: downEvent.timestamp - targetAbsoluteMs,
 					matchedDownInput: downEvent,
 					matchedUpInput: null,
+					pressVerdict,
+					final: true,
+					phase: 'release',
 				};
 			}
 			return null;
@@ -87,27 +129,37 @@ export class Judge {
 		this.pendingHolds.delete(step.id);
 
 		const holdDurationMs = upEvent.timestamp - downEvent.timestamp;
-		const minHold = step.minHoldMs ?? DEFAULT_MIN_HOLD_MS;
-		const targetDelta = downEvent.timestamp - downEvent.timestamp;
 
-		if (holdDurationMs < minHold) {
+		if (holdDurationMs < minHoldMs) {
 			return {
 				stepId: step.id,
 				verdict: 'released-early',
-				deltaMs: targetDelta,
+				deltaMs: downEvent.timestamp - targetAbsoluteMs,
 				matchedDownInput: downEvent,
 				matchedUpInput: upEvent,
 				holdDurationMs,
+				pressVerdict,
+				final: true,
+				phase: 'release',
 			};
 		}
 
+		const expectedReleaseAbsoluteMs = targetAbsoluteMs + minHoldMs;
+		const releaseDelta = upEvent.timestamp - expectedReleaseAbsoluteMs;
+		const releaseVerdict = this.verdictFromDelta(releaseDelta);
+
 		return {
 			stepId: step.id,
-			verdict: this.verdictFromDelta(targetDelta),
-			deltaMs: targetDelta,
+			verdict: releaseVerdict,
+			deltaMs: downEvent.timestamp - targetAbsoluteMs,
 			matchedDownInput: downEvent,
 			matchedUpInput: upEvent,
 			holdDurationMs,
+			pressVerdict,
+			releaseVerdict,
+			releaseDeltaMs: releaseDelta,
+			final: true,
+			phase: 'release',
 		};
 	}
 
@@ -163,14 +215,20 @@ export class Judge {
 		return delta < 0 ? 'early' : 'late';
 	}
 
-	private missResult(stepId: number): JudgeResult {
+	private missResult(stepId: number, phase: 'tap' | 'press'): JudgeResult {
 		return {
 			stepId,
 			verdict: 'miss',
 			deltaMs: 0,
 			matchedDownInput: null,
 			matchedUpInput: null,
+			final: true,
+			phase,
 		};
+	}
+
+	isConsumed(sequence: number): boolean {
+		return this.consumedSequences.has(sequence);
 	}
 
 	reset(): void {

@@ -43,8 +43,12 @@ export interface JudgeResult {
 	matchedDownInput: InputEvent | null;
 	matchedUpInput: InputEvent | null;
 	holdDurationMs?: number;
+	pressVerdict?: Verdict;
+	releaseVerdict?: Verdict;
+	releaseDeltaMs?: number;
+	final: boolean;
+	phase: 'tap' | 'press' | 'release';
 }
-
 export const FRAME_MS = 1000 / 60;
 
 export const JUDGE_WINDOWS_FRAMES = {
