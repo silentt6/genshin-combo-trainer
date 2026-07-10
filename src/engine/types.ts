@@ -37,7 +37,7 @@ export interface JudgeResult {
 export const FRAME_MS = 1000 / 60;
 
 export const JUDGE_WINDOWS_FRAMES = {
-	perfect: 1,
-	good: 3,
+	perfect: 2,
+	good: 4,
 	lateEarly: 6,
 } as const;
