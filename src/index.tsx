@@ -2,6 +2,7 @@
 import { render } from 'solid-js/web';
 import './index.css';
 import App from './App.tsx';
+import { Router } from '@solidjs/router';
 
 const root = document.getElementById('root');
 
@@ -11,4 +12,11 @@ if (!root) {
 	);
 }
 
-render(() => <App />, root!);
+render(
+	() => (
+		<Router>
+			<App />
+		</Router>
+	),
+	root!,
+);
