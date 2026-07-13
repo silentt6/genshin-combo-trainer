@@ -1,5 +1,5 @@
 import { createSignal, createEffect, onCleanup } from 'solid-js';
-import type { JudgeResult, Verdict } from './engine/types';
+import type { JudgeResult, Verdict } from '../engine/types';
 
 export interface HudApi {
 	reportResult: (result: JudgeResult) => void;

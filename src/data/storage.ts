@@ -55,6 +55,11 @@ export function exportCombosAsJson(): string {
 	return JSON.stringify(file, null, 2);
 }
 
+export function exportComboAsJson(combo: Combo): string {
+	const file: ComboFile = { version: CURRENT_VERSION, combos: [combo] };
+	return JSON.stringify(file, null, 2);
+}
+
 export function importCombosFromJson(json: string): boolean {
 	try {
 		const parsed = JSON.parse(json);

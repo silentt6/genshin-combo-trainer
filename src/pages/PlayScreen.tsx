@@ -5,7 +5,7 @@ import { InputCapture } from '../engine/inputCapture';
 import { Judge } from '../engine/judge';
 import { GameLoop } from '../engine/gameLoop';
 import { Renderer } from '../engine/renderer';
-import { createHudApi } from '../Hud';
+import { createHudApi } from '../components/Hud';
 import { loadCombos } from '../data/storage';
 import { BUILT_IN_COMBOS } from '../data/builtInCombos';
 
@@ -18,8 +18,10 @@ export default function PlayScreen() {
 	const { hudApi, Hud } = createHudApi();
 
 	const findCombo = () => {
-		const all = [...BUILT_IN_COMBOS, ...loadCombos()];
-		return all.find((c) => c.id === params.comboId);
+		const saved = loadCombos();
+		const savedMatch = saved.find((c) => c.id === params.comboId);
+		if (savedMatch) return savedMatch;
+		return BUILT_IN_COMBOS.find((c) => c.id === params.comboId);
 	};
 
 	const activeCombo = findCombo();
@@ -94,7 +96,7 @@ export default function PlayScreen() {
 			<div class="min-h-screen bg-neutral-900 text-white flex flex-col items-center justify-center gap-4">
 				<p>Combo not found.</p>
 				<button
-					class="bg-cyan-600 px-4 py-2 rounded"
+					class="cursor-pointer bg-cyan-600 px-4 py-2 rounded"
 					onClick={() => navigate('/')}
 				>
 					Back to Lobby
@@ -106,7 +108,7 @@ export default function PlayScreen() {
 	return (
 		<div class="w-screen h-screen bg-neutral-900 relative overflow-hidden">
 			<button
-				class="absolute top-4 left-4 z-10 bg-neutral-800 hover:bg-neutral-700 px-3 py-1 rounded text-white"
+				class="cursor-pointer absolute top-4 left-4 z-10 bg-neutral-800 hover:bg-neutral-700 px-3 py-1 rounded text-white"
 				onClick={() => navigate('/')}
 			>
 				← Back
