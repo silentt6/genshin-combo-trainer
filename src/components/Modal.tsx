@@ -32,7 +32,7 @@ export function Modal(props: {
 				dialogRef = el;
 				el.addEventListener('close', handleNativeClose);
 			}}
-			class="backdrop:bg-black/60 rounded-2xl border border-neutral-800 bg-neutral-900 text-white p-0 w-full max-w-lg"
+			class="backdrop:bg-black/60 rounded-2xl border border-neutral-800 bg-neutral-900 text-white p-0 w-full max-w-lg m-auto"
 			onClick={(e) => {
 				if (e.target === dialogRef) props.onClose();
 			}}
@@ -41,7 +41,7 @@ export function Modal(props: {
 				<div class="flex items-center justify-between mb-4">
 					<h2 class="text-lg font-semibold">{props.title}</h2>
 					<button
-						class="text-neutral-500 hover:text-white transition-colors"
+						class="cursor-pointer text-neutral-500 hover:text-white transition-colors"
 						onClick={props.onClose}
 					>
 						✕

@@ -1,6 +1,6 @@
 import type { Combo } from '../engine/types';
 import type { ComboFile } from './schema';
-import { isValidComboFile } from './schema';
+import { isValidComboFile, safeParseComboJson } from './schema';
 
 const STORAGE_KEY = 'genshin-combo-trainer:combos';
 const CURRENT_VERSION = 1;
@@ -60,13 +60,13 @@ export function exportComboAsJson(combo: Combo): string {
 	return JSON.stringify(file, null, 2);
 }
 
-export function importCombosFromJson(json: string): boolean {
-	try {
-		const parsed = JSON.parse(json);
-		if (!isValidComboFile(parsed)) return false;
-		saveCombos(parsed.combos);
-		return true;
-	} catch {
-		return false;
-	}
+export function importCombosFromJson(json: string): {
+	ok: boolean;
+	error?: string;
+} {
+	const result = safeParseComboJson(json);
+	if (!result.ok) return { ok: false, error: result.error };
+
+	saveCombos(result.file.combos);
+	return { ok: true };
 }

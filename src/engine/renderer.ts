@@ -72,10 +72,10 @@ export class Renderer {
 			ctx.fillRect(lane.x * width - 40, 0, 80, height);
 		}
 
-		if (nowMs < initialStartMs) return;
-
-		const elapsed = nowMs - initialStartMs;
-		const currentCycleIndex = Math.floor(elapsed / cycleDurationMs);
+		const currentCycleIndex =
+			nowMs < initialStartMs
+				? 0
+				: Math.floor((nowMs - initialStartMs) / cycleDurationMs);
 
 		for (const cycleIndex of [currentCycleIndex, currentCycleIndex + 1]) {
 			const cycleStartMs = initialStartMs + cycleIndex * cycleDurationMs;

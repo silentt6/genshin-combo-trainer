@@ -5,7 +5,7 @@ import { BUILT_IN_COMBOS } from '../data/builtInCombos';
 import { ImportComboModal } from '../components/ImportComboModal';
 import type { Combo } from '../engine/types';
 
-export default function Lobby() {
+export default function Home() {
 	const navigate = useNavigate();
 	const [savedCombos, setSavedCombos] = createSignal<Combo[]>([]);
 	const [selectedId, setSelectedId] = createSignal<string | null>(null);
@@ -40,7 +40,9 @@ export default function Lobby() {
 	return (
 		<div class="min-h-screen bg-neutral-950 text-neutral-100">
 			<header class="border-b border-neutral-900 px-8 py-5 flex items-center justify-between">
-				<h1 class="text-xl font-semibold tracking-tight">Combo Trainer</h1>
+				<h1 class="text-xl font-genshin font-bold tracking-tight">
+					Genshin Combo Trainer
+				</h1>
 				<button
 					class="cursor-pointer text-sm text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors"
 					onClick={() => navigate('/manage')}
@@ -71,7 +73,7 @@ export default function Lobby() {
 									onClick={() => setSelectedId(combo.id)}
 								>
 									<div class="flex items-center justify-between">
-										<span class="font-medium">{combo.name}</span>
+										<span class="font-genshin font-medium">{combo.name}</span>
 										<span
 											class={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded ${
 												combo.source === 'built-in'
@@ -91,7 +93,7 @@ export default function Lobby() {
 
 						<Show when={filteredCombos().length === 0}>
 							<p class="text-sm text-neutral-600 text-center py-8">
-								No combos match your search.
+								No results match your search.
 							</p>
 						</Show>
 					</div>
@@ -108,7 +110,7 @@ export default function Lobby() {
 							<p class="text-xs text-neutral-500 uppercase tracking-wide mb-1">
 								Selected
 							</p>
-							<p class="font-medium">{selectedCombo()?.name}</p>
+							<p class="font-genshin font-medium">{selectedCombo()?.name}</p>
 							<p class="text-sm text-neutral-500">
 								{selectedCombo()?.steps.length} steps
 							</p>
@@ -116,7 +118,7 @@ export default function Lobby() {
 					</div>
 
 					<button
-						class="cursor-pointer w-full py-3 rounded-lg font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-cyan-600 hover:bg-cyan-500 text-white"
+						class="cursor-pointer w-full py-3 rounded-lg font-genshin font-semibold transition-colors disabled:opacity-30 disabled:cursor-default bg-cyan-600 disabled:hover:bg-cyan-600 hover:bg-cyan-500 text-white"
 						disabled={!selectedCombo()}
 						onClick={handleStart}
 					>
@@ -124,7 +126,7 @@ export default function Lobby() {
 					</button>
 
 					<button
-						class="cursor-pointer w-full py-3 rounded-lg font-medium border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white transition-colors"
+						class="cursor-pointer w-full py-3 rounded-lg font-genshin font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-neutral-800 hover:bg-neutral-600 text-neutral-300 hover:text-white"
 						onClick={() => setImportOpen(true)}
 					>
 						Import Combo

@@ -1,1 +1,11 @@
+@font-face {
+	font-family: 'HYWenHei-HEW';
+	src: url('/fonts/HYWenHei-HEW.woff2') format('woff2');
+	font-style: regular;
+}
+
 @import 'tailwindcss';
+
+@theme {
+	--font-genshin: 'HYWenHei-HEW', sans-serif;
+}

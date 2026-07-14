@@ -453,7 +453,7 @@ export function ComboEditor(props: {
 					</Show>
 
 					<button
-						class="cursor-pointertext-sm text-neutral-500 hover:text-red-400 border border-neutral-800 hover:border-red-900 rounded-lg px-3 py-1.5 transition-colors ml-auto"
+						class="cursor-pointer text-sm text-neutral-500 hover:text-red-400 border border-neutral-800 hover:border-red-900 rounded-lg px-3 py-1.5 transition-colors ml-auto"
 						onClick={deleteSelectedStep}
 					>
 						Delete Step

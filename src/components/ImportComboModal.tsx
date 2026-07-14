@@ -11,9 +11,9 @@ export function ImportComboModal(props: {
 	const [error, setError] = createSignal<string | null>(null);
 
 	const handleImport = (): void => {
-		const success = importCombosFromJson(text());
-		if (!success) {
-			setError('Invalid combo JSON. Check the format and try again.');
+		const result = importCombosFromJson(text());
+		if (!result.ok) {
+			setError(result.error ?? 'Invalid combo JSON.');
 			return;
 		}
 		setError(null);
@@ -34,13 +34,13 @@ export function ImportComboModal(props: {
 			{error() && <p class="text-red-400 text-sm mt-2">{error()}</p>}
 			<div class="flex gap-2 mt-4">
 				<button
-					class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-2 rounded-lg transition-colors"
+					class="cursor-pointer flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-2 rounded-lg transition-colors"
 					onClick={handleImport}
 				>
 					Import
 				</button>
 				<button
-					class="bg-neutral-800 hover:bg-neutral-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+					class="cursor-pointer bg-neutral-800 hover:bg-neutral-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
 					onClick={props.onClose}
 				>
 					Cancel
