@@ -1,4 +1,4 @@
-import { onMount, onCleanup } from 'solid-js';
+import { onMount, onCleanup, createSignal } from 'solid-js';
 import { useParams, useNavigate } from '@solidjs/router';
 import { InputRingBuffer } from '../engine/ringBuffer';
 import { InputCapture } from '../engine/inputCapture';
@@ -16,6 +16,7 @@ export default function PlayScreen() {
 	const navigate = useNavigate();
 	let canvasRef: HTMLCanvasElement | undefined;
 	const { hudApi, Hud } = createHudApi();
+	const [isPlaying, setIsPlaying] = createSignal(true);
 
 	const findCombo = () => {
 		const saved = loadCombos();
@@ -31,24 +32,45 @@ export default function PlayScreen() {
 
 		const buffer = new InputRingBuffer();
 		const capture = new InputCapture(buffer, canvasRef);
-		const judge = new Judge();
 		const renderer = new Renderer(canvasRef);
-
 		capture.start();
 
-		const comboStartMs = performance.now() + COUNTDOWN_MS;
-		const pendingSteps = [...activeCombo.steps];
-		const handledStray = new Set<number>();
+		const initialStartMs = performance.now() + COUNTDOWN_MS;
+		const loopIntervalMs = activeCombo.loopIntervalMs ?? 1000;
+		const lastStepEndMs = Math.max(
+			0,
+			...activeCombo.steps.map(
+				(s) => s.targetMs + (s.actionKind === 'hold' ? (s.minHoldMs ?? 0) : 0),
+			),
+		);
+		const cycleDurationMs = lastStepEndMs + loopIntervalMs;
+
+		let judge = new Judge();
+		let pendingSteps = [...activeCombo.steps];
+		let handledStray = new Set<number>();
+		let lastCycleIndex = -1;
 
 		const loop = new GameLoop(
 			(now) => {
-				if (now < comboStartMs) return;
+				if (!isPlaying()) return;
+				if (now < initialStartMs) return;
 
+				const elapsed = now - initialStartMs;
+				const cycleIndex = Math.floor(elapsed / cycleDurationMs);
+
+				if (cycleIndex !== lastCycleIndex) {
+					judge = new Judge();
+					pendingSteps = [...activeCombo.steps];
+					handledStray = new Set();
+					lastCycleIndex = cycleIndex;
+				}
+
+				const cycleStartMs = initialStartMs + cycleIndex * cycleDurationMs;
 				const allEvents = buffer.getUnconsumed(-1);
 
 				for (let i = pendingSteps.length - 1; i >= 0; i--) {
 					const step = pendingSteps[i];
-					const result = judge.classify(step, comboStartMs, now, allEvents);
+					const result = judge.classify(step, cycleStartMs, now, allEvents);
 					if (result !== null) {
 						hudApi.reportResult(result);
 						if (result.final) pendingSteps.splice(i, 1);
@@ -59,7 +81,6 @@ export default function PlayScreen() {
 					if (event.action !== 'down') continue;
 					if (judge.isConsumed(event.sequence)) continue;
 					if (handledStray.has(event.sequence)) continue;
-
 					handledStray.add(event.sequence);
 					hudApi.reportResult({
 						stepId: -1,
@@ -73,10 +94,11 @@ export default function PlayScreen() {
 				}
 			},
 			(now) => {
-				renderer.render(now, activeCombo, comboStartMs);
-				if (now < comboStartMs) {
-					hudApi.setCountdown(Math.ceil((comboStartMs - now) / 1000));
-				} else if (now < comboStartMs + 500) {
+				renderer.render(now, activeCombo, initialStartMs, cycleDurationMs);
+
+				if (now < initialStartMs) {
+					hudApi.setCountdown(Math.ceil((initialStartMs - now) / 1000));
+				} else if (now < initialStartMs + 500) {
 					hudApi.setCountdown(0);
 				} else {
 					hudApi.setCountdown(null);
@@ -107,6 +129,12 @@ export default function PlayScreen() {
 
 	return (
 		<div class="w-screen h-screen bg-neutral-900 relative overflow-hidden">
+			{/* <button
+				class="cursor-pointer absolute top-4 left-4 z-10 bg-neutral-800 hover:bg-neutral-700 px-3 py-1 rounded text-white"
+				onClick={() => setIsPlaying(false)}
+			>
+				Stop
+			</button> */}
 			<button
 				class="cursor-pointer absolute top-4 left-4 z-10 bg-neutral-800 hover:bg-neutral-700 px-3 py-1 rounded text-white"
 				onClick={() => navigate('/')}

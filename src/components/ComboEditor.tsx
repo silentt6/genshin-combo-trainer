@@ -274,6 +274,20 @@ export function ComboEditor(props: {
 						props.onChange({ ...props.combo, name: e.currentTarget.value })
 					}
 				/>
+				<label class="flex flex-col text-xs text-neutral-500">
+					Loop Interval (ms)
+					<input
+						type="number"
+						class="bg-neutral-950 border border-neutral-800 rounded px-2 py-1 mt-1 font-mono text-sm w-28"
+						value={props.combo.loopIntervalMs ?? 1000}
+						onInput={(e) =>
+							props.onChange({
+								...props.combo,
+								loopIntervalMs: Number(e.currentTarget.value),
+							})
+						}
+					/>
+				</label>
 				<button
 					class={`cursor-pointer px-4 py-2 rounded-lg font-medium transition-colors ${
 						isRecording()

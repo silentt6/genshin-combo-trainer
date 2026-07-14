@@ -26,6 +26,7 @@ export interface Combo {
 	name: string;
 	bpm?: number;
 	scrollSpeed: number;
+	loopIntervalMs?: number;
 	steps: Step[];
 }
 

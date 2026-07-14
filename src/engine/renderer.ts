@@ -47,7 +47,12 @@ export class Renderer {
 		return this.canvas.height / this.dpr;
 	}
 
-	render(nowMs: number, combo: Combo, comboStartMs: number): void {
+	render(
+		nowMs: number,
+		combo: Combo,
+		initialStartMs: number,
+		cycleDurationMs: number,
+	): void {
 		const { ctx } = this;
 		const width = this.cssWidth;
 		const height = this.cssHeight;
@@ -67,50 +72,59 @@ export class Renderer {
 			ctx.fillRect(lane.x * width - 40, 0, 80, height);
 		}
 
-		for (const step of combo.steps) {
-			const lane = LANES.find((l) =>
-				l.inputs.some((i) => step.inputs.includes(i)),
-			);
-			if (!lane) continue;
+		if (nowMs < initialStartMs) return;
 
-			const x = lane.x * width;
-			const targetAbsoluteMs = comboStartMs + step.targetMs;
-			const msUntilHit = targetAbsoluteMs - nowMs;
-			const y = hitLineY - msUntilHit * combo.scrollSpeed;
+		const elapsed = nowMs - initialStartMs;
+		const currentCycleIndex = Math.floor(elapsed / cycleDurationMs);
 
-			if (step.actionKind === 'tap') {
-				if (y < -TAP_RADIUS || y > height + TAP_RADIUS) continue;
-				ctx.beginPath();
-				ctx.arc(x, y, TAP_RADIUS, 0, Math.PI * 2);
-				ctx.fillStyle = lane.color;
-				ctx.fill();
-			} else {
-				const minHold = step.minHoldMs ?? DEFAULT_MIN_HOLD_MS;
-				const barHeight = minHold * combo.scrollSpeed;
-				const barTopY = y - barHeight;
+		for (const cycleIndex of [currentCycleIndex, currentCycleIndex + 1]) {
+			const cycleStartMs = initialStartMs + cycleIndex * cycleDurationMs;
 
-				if (barTopY > height + TAP_RADIUS || y < -TAP_RADIUS) continue;
-
-				ctx.fillStyle = lane.color;
-				ctx.globalAlpha = 0.4;
-				ctx.fillRect(
-					x - HOLD_BAR_WIDTH / 2,
-					barTopY,
-					HOLD_BAR_WIDTH,
-					barHeight,
+			for (const step of combo.steps) {
+				const lane = LANES.find((l) =>
+					l.inputs.some((i) => step.inputs.includes(i)),
 				);
-				ctx.globalAlpha = 1;
+				if (!lane) continue;
 
-				ctx.beginPath();
-				ctx.arc(x, y, TAP_RADIUS, 0, Math.PI * 2);
-				ctx.fillStyle = lane.color;
-				ctx.fill();
+				const targetAbsoluteMs = cycleStartMs + step.targetMs;
+				const msUntilHit = targetAbsoluteMs - nowMs;
+				const y = hitLineY - msUntilHit * combo.scrollSpeed;
 
-				ctx.beginPath();
-				ctx.arc(x, barTopY, TAP_RADIUS * 0.6, 0, Math.PI * 2);
-				ctx.strokeStyle = '#ffffff';
-				ctx.lineWidth = 2;
-				ctx.stroke();
+				if (step.actionKind === 'tap') {
+					if (y < -TAP_RADIUS || y > height + TAP_RADIUS) continue;
+					const x = lane.x * width;
+					ctx.beginPath();
+					ctx.arc(x, y, TAP_RADIUS, 0, Math.PI * 2);
+					ctx.fillStyle = lane.color;
+					ctx.fill();
+				} else {
+					const minHold = step.minHoldMs ?? DEFAULT_MIN_HOLD_MS;
+					const barHeight = minHold * combo.scrollSpeed;
+					const barTopY = y - barHeight;
+					if (barTopY > height + TAP_RADIUS || y < -TAP_RADIUS) continue;
+
+					const x = lane.x * width;
+					ctx.fillStyle = lane.color;
+					ctx.globalAlpha = 0.4;
+					ctx.fillRect(
+						x - HOLD_BAR_WIDTH / 2,
+						barTopY,
+						HOLD_BAR_WIDTH,
+						barHeight,
+					);
+					ctx.globalAlpha = 1;
+
+					ctx.beginPath();
+					ctx.arc(x, y, TAP_RADIUS, 0, Math.PI * 2);
+					ctx.fillStyle = lane.color;
+					ctx.fill();
+
+					ctx.beginPath();
+					ctx.arc(x, barTopY, TAP_RADIUS * 0.6, 0, Math.PI * 2);
+					ctx.strokeStyle = '#ffffff';
+					ctx.lineWidth = 2;
+					ctx.stroke();
+				}
 			}
 		}
 	}
