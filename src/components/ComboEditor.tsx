@@ -3,6 +3,8 @@ import type { Combo, Step, InputKind } from '../engine/types';
 import { DEFAULT_MIN_HOLD_MS } from '../engine/types';
 import { InputRingBuffer } from '../engine/ringBuffer';
 import { InputCapture } from '../engine/inputCapture';
+import { LANES as TRACKS } from '../data/LaneConfig';
+import type { LaneConfig } from '../data/LaneConfig';
 
 const PIXELS_PER_MS = 0.18;
 const TIMELINE_DURATION_MS = 10000;
@@ -10,31 +12,9 @@ const TRACK_HEIGHT = 72;
 const TAP_WIDTH_MS = 120;
 const RULER_HEIGHT = 28;
 
-interface TrackDef {
-	id: 'attack' | 'evade';
-	label: string;
-	color: string;
-	defaultInputs: InputKind[];
-}
-
-const TRACKS: TrackDef[] = [
-	{
-		id: 'attack',
-		label: 'Attack — Left Click',
-		color: '#38bdf8',
-		defaultInputs: ['mouse-left'],
-	},
-	{
-		id: 'evade',
-		label: 'Evade — Right Click / Shift',
-		color: '#facc15',
-		defaultInputs: ['mouse-right', 'shift'],
-	},
-];
-
-function trackForStep(step: Step): TrackDef {
+function trackForStep(step: Step): LaneConfig {
 	return (
-		TRACKS.find((t) => t.defaultInputs.some((i) => step.inputs.includes(i))) ??
+		TRACKS.find((t) => t.inputs.some((i) => step.inputs.includes(i))) ??
 		TRACKS[0]
 	);
 }
@@ -52,7 +32,7 @@ export function ComboEditor(props: {
 }) {
 	const [selectedStepId, setSelectedStepId] = createSignal<number | null>(null);
 	const [hover, setHover] = createSignal<{
-		track: TrackDef;
+		track: LaneConfig;
 		ms: number;
 	} | null>(null);
 	const [isRecording, setIsRecording] = createSignal(false);
@@ -71,11 +51,11 @@ export function ComboEditor(props: {
 	const nextId = (): number =>
 		props.combo.steps.reduce((max, s) => Math.max(max, s.id), 0) + 1;
 
-	const stepsInTrack = (track: TrackDef): Step[] =>
+	const stepsInTrack = (track: LaneConfig): Step[] =>
 		props.combo.steps.filter((s) => trackForStep(s).id === track.id);
 
 	const hasOverlap = (
-		track: TrackDef,
+		track: LaneConfig,
 		startMs: number,
 		widthMs: number,
 		excludeId?: number,
@@ -96,12 +76,12 @@ export function ComboEditor(props: {
 		return Math.max(0, Math.round(x / PIXELS_PER_MS));
 	};
 
-	const handleTrackMouseMove = (track: TrackDef, e: MouseEvent): void => {
+	const handleTrackMouseMove = (track: LaneConfig, e: MouseEvent): void => {
 		if (resizing()) return;
 		setHover({ track, ms: msFromClientX(e.clientX) });
 	};
 
-	const handleTrackClick = (track: TrackDef, e: MouseEvent): void => {
+	const handleTrackClick = (track: LaneConfig, e: MouseEvent): void => {
 		if ((e.target as HTMLElement).closest('[data-step]')) return;
 
 		const targetMs = msFromClientX(e.clientX);
@@ -109,7 +89,7 @@ export function ComboEditor(props: {
 
 		const newStep: Step = {
 			id: nextId(),
-			inputs: track.defaultInputs,
+			inputs: track.inputs,
 			actionKind: 'tap',
 			targetMs,
 		};
@@ -322,7 +302,7 @@ export function ComboEditor(props: {
 								length: Math.floor(TIMELINE_DURATION_MS / 500) + 1,
 							})}
 						>
-							{(_, i) => (
+							{(_, i: () => number) => (
 								<div
 									class="absolute top-0 text-[10px] text-neutral-600 font-mono"
 									style={{ left: `${i() * 500 * PIXELS_PER_MS}px` }}

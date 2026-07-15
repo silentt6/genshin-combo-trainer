@@ -1,4 +1,5 @@
-import type { Step, Combo, InputKind } from './types';
+import { LANES } from '../data/LaneConfig';
+import type { Combo, InputKind } from './types';
 import { DEFAULT_MIN_HOLD_MS } from './types';
 
 export interface LaneConfig {
@@ -7,11 +8,6 @@ export interface LaneConfig {
 	x: number;
 	color: string;
 }
-
-const LANES: LaneConfig[] = [
-	{ id: 'attack', inputs: ['mouse-left'], x: 0.35, color: '#38bdf8' },
-	{ id: 'evade', inputs: ['mouse-right', 'shift'], x: 0.65, color: '#facc15' },
-];
 
 const HIT_LINE_Y_RATIO = 0.85;
 const TAP_RADIUS = 20;

@@ -8,6 +8,7 @@ import { Renderer } from '../engine/renderer';
 import { createHudApi } from '../components/Hud';
 import { loadCombos } from '../data/storage';
 import { BUILT_IN_COMBOS } from '../data/builtInCombos';
+import { useShellConfig } from '../components/AppShell';
 
 const COUNTDOWN_MS = 3000;
 
@@ -16,7 +17,7 @@ export default function PlayScreen() {
 	const navigate = useNavigate();
 	let canvasRef: HTMLCanvasElement | undefined;
 	const { hudApi, Hud } = createHudApi();
-	const [isPlaying, setIsPlaying] = createSignal(true);
+	const [isPlaying] = createSignal(true);
 
 	const findCombo = () => {
 		const saved = loadCombos();
@@ -26,6 +27,8 @@ export default function PlayScreen() {
 	};
 
 	const activeCombo = findCombo();
+
+	useShellConfig({ title: '', fullscreen: true });
 
 	onMount(() => {
 		if (!canvasRef || !activeCombo) return;

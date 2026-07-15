@@ -10,6 +10,8 @@ import {
 import { BUILT_IN_COMBOS } from '../data/builtInCombos';
 import { ImportComboModal } from '../components/ImportComboModal';
 import type { Combo } from '../engine/types';
+import { useShellConfig } from '../components/AppShell';
+import { ComboRow } from '../components/ComboRow';
 
 export default function ManageScreen() {
 	const navigate = useNavigate();
@@ -55,18 +57,14 @@ export default function ManageScreen() {
 		navigate(`/editor/${newCombo.id}`);
 	};
 
-	return (
-		<div class="min-h-screen bg-neutral-950 text-neutral-100">
-			<header class="border-b border-neutral-900 px-8 py-5 flex items-center justify-between">
-				<h1 class="text-xl font-semibold tracking-tight">Manage Combos</h1>
-				<button
-					class="cursor-pointer text-sm text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors"
-					onClick={() => navigate('/')}
-				>
-					← Back to Lobby
-				</button>
-			</header>
+	useShellConfig({
+		title: 'Manage Combos',
+		backTo: '/',
+		backLabel: '← Back to Lobby',
+	});
 
+	return (
+		<>
 			<div class="max-w-5xl mx-auto px-8 py-10">
 				<section class="mb-10">
 					<p class="text-xs text-neutral-500 uppercase tracking-wide mb-3">
@@ -75,26 +73,48 @@ export default function ManageScreen() {
 					<div class="flex flex-col gap-1 rounded-lg border border-neutral-900">
 						<For each={BUILT_IN_COMBOS}>
 							{(combo) => (
-								<div class="flex items-center justify-between px-4 py-3 border-b border-neutral-900 last:border-b-0">
-									<div>
-										<p class="font-medium">{combo.name}</p>
-										<p class="text-xs text-neutral-500">
-											{combo.steps.length} steps
-										</p>
-									</div>
+								<ComboRow combo={combo}>
 									<button
-										class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
+										class="text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
+										onClick={() => navigate(`/editor/${combo.id}`)}
+									>
+										Edit
+									</button>
+									<button
+										class="text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
+										onClick={() => handleCopy(combo)}
+									>
+										{copiedId() === combo.id ? 'Copied!' : 'Copy JSON'}
+									</button>
+								</ComboRow>
+							)}
+						</For>
+
+						<For each={savedCombos()}>
+							{(combo) => (
+								<ComboRow combo={combo}>
+									<button
+										class="text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
+										onClick={() => navigate(`/editor/${combo.id}`)}
+									>
+										Edit
+									</button>
+									<button
+										class="text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 										onClick={() => handleCopy(combo)}
 									>
 										{copiedId() === combo.id ? 'Copied!' : 'Copy JSON'}
 									</button>
 									<button
-										class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
-										onClick={() => navigate(`/editor/${combo.id}`)}
+										class="text-sm text-neutral-500 hover:text-red-400 border border-neutral-800 hover:border-red-900 rounded-lg px-3 py-1.5 transition-colors"
+										onClick={() => {
+											deleteCombo(combo.id);
+											refreshSaved();
+										}}
 									>
-										Edit
+										Delete
 									</button>
-								</div>
+								</ComboRow>
 							)}
 						</For>
 					</div>
@@ -181,6 +201,6 @@ export default function ManageScreen() {
 				onClose={() => setImportOpen(false)}
 				onImported={refreshSaved}
 			/>
-		</div>
+		</>
 	);
 }

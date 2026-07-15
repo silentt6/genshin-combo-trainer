@@ -4,6 +4,7 @@ import { loadCombos } from '../data/storage';
 import { BUILT_IN_COMBOS } from '../data/builtInCombos';
 import { ImportComboModal } from '../components/ImportComboModal';
 import type { Combo } from '../engine/types';
+import { useShellConfig } from '../components/AppShell';
 
 export default function Home() {
 	const navigate = useNavigate();
@@ -37,20 +38,14 @@ export default function Home() {
 		if (id) navigate(`/play/${id}`);
 	};
 
-	return (
-		<div class="min-h-screen bg-neutral-950 text-neutral-100">
-			<header class="border-b border-neutral-900 px-8 py-5 flex items-center justify-between">
-				<h1 class="text-xl font-genshin font-bold tracking-tight">
-					Genshin Combo Trainer
-				</h1>
-				<button
-					class="cursor-pointer text-sm text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors"
-					onClick={() => navigate('/manage')}
-				>
-					Manage Combos
-				</button>
-			</header>
+	useShellConfig({
+		title: 'Genshin Combo Trainer',
+		backTo: '/manage',
+		backLabel: 'Manage Combos',
+	});
 
+	return (
+		<>
 			<div class="max-w-5xl mx-auto px-8 py-10 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_320px] gap-8">
 				<div class="flex flex-col min-h-0">
 					<input
@@ -100,7 +95,7 @@ export default function Home() {
 				</div>
 
 				<div class="flex flex-col gap-3">
-					<div class="border border-neutral-900 rounded-lg p-4 min-h-[100px]">
+					<div class="border border-neutral-900 rounded-lg p-4 min-h-25">
 						<Show
 							when={selectedCombo()}
 							fallback={
@@ -139,6 +134,6 @@ export default function Home() {
 				onClose={() => setImportOpen(false)}
 				onImported={refreshSaved}
 			/>
-		</div>
+		</>
 	);
 }

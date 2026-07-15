@@ -4,6 +4,7 @@ import { ComboEditor } from '../components/ComboEditor';
 import { loadCombos, saveCombo } from '../data/storage';
 import { BUILT_IN_COMBOS } from '../data/builtInCombos';
 import type { Combo } from '../engine/types';
+import { useShellConfig } from '../components/AppShell';
 
 export default function EditorScreen() {
 	const params = useParams();
@@ -26,8 +27,14 @@ export default function EditorScreen() {
 		saveCombo(updated);
 	};
 
+	useShellConfig({
+		title: 'Combo Editor',
+		backTo: '/manage',
+		backLabel: '← Back to Manage',
+	});
+
 	return (
-		<div class="min-h-screen bg-neutral-950 text-neutral-100">
+		<>
 			{combo() === undefined && (
 				<div class="flex items-center justify-center h-screen text-neutral-500">
 					Loading...
@@ -48,15 +55,6 @@ export default function EditorScreen() {
 
 			{combo() && (
 				<>
-					<header class="border-b border-neutral-900 px-8 py-5 flex items-center justify-between">
-						<h1 class="text-xl font-semibold tracking-tight">Combo Editor</h1>
-						<button
-							class="cursor-pointer text-sm text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors"
-							onClick={() => navigate('/manage')}
-						>
-							← Back to Manage
-						</button>
-					</header>
 					<ComboEditor
 						combo={combo() as Combo}
 						onChange={handleChange}
@@ -64,6 +62,6 @@ export default function EditorScreen() {
 					/>
 				</>
 			)}
-		</div>
+		</>
 	);
 }
