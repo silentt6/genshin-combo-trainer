@@ -39,7 +39,7 @@ export function AppShell(props: { children: JSX.Element }) {
 						<div class="flex items-center gap-2">
 							{config().action && (
 								<button
-									class="text-sm text-neutral-300 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors"
+									class="cursor-pointer text-sm text-neutral-300 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors"
 									onClick={config().action?.onClick}
 								>
 									{config().action?.label}
@@ -47,7 +47,7 @@ export function AppShell(props: { children: JSX.Element }) {
 							)}
 							{config().backTo && (
 								<button
-									class="text-sm text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors"
+									class="cursor-pointer text-sm text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors"
 									onClick={() => navigate(config().backTo!)}
 								>
 									{config().backLabel ?? '← Back'}

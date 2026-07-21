@@ -30,7 +30,7 @@ export default function EditorScreen() {
 	useShellConfig({
 		title: 'Combo Editor',
 		backTo: '/manage',
-		backLabel: '← Back to Manage',
+		backLabel: '← Back to Manage Combos',
 	});
 
 	return (

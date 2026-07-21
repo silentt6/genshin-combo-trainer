@@ -1,4 +1,4 @@
-import { LANES } from '../data/LaneConfig';
+import { LANES } from '../data/laneConfig';
 import type { Combo, InputKind } from './types';
 import { DEFAULT_MIN_HOLD_MS } from './types';
 

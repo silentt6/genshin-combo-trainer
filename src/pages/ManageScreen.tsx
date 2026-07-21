@@ -60,7 +60,7 @@ export default function ManageScreen() {
 	useShellConfig({
 		title: 'Manage Combos',
 		backTo: '/',
-		backLabel: '← Back to Lobby',
+		backLabel: '← Back to Homepage',
 	});
 
 	return (
@@ -75,44 +75,16 @@ export default function ManageScreen() {
 							{(combo) => (
 								<ComboRow combo={combo}>
 									<button
-										class="text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
+										class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 										onClick={() => navigate(`/editor/${combo.id}`)}
 									>
 										Edit
 									</button>
 									<button
-										class="text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
+										class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 										onClick={() => handleCopy(combo)}
 									>
 										{copiedId() === combo.id ? 'Copied!' : 'Copy JSON'}
-									</button>
-								</ComboRow>
-							)}
-						</For>
-
-						<For each={savedCombos()}>
-							{(combo) => (
-								<ComboRow combo={combo}>
-									<button
-										class="text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
-										onClick={() => navigate(`/editor/${combo.id}`)}
-									>
-										Edit
-									</button>
-									<button
-										class="text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
-										onClick={() => handleCopy(combo)}
-									>
-										{copiedId() === combo.id ? 'Copied!' : 'Copy JSON'}
-									</button>
-									<button
-										class="text-sm text-neutral-500 hover:text-red-400 border border-neutral-800 hover:border-red-900 rounded-lg px-3 py-1.5 transition-colors"
-										onClick={() => {
-											deleteCombo(combo.id);
-											refreshSaved();
-										}}
-									>
-										Delete
 									</button>
 								</ComboRow>
 							)}
@@ -123,7 +95,7 @@ export default function ManageScreen() {
 				<section>
 					<div class="flex items-center justify-between mb-3">
 						<p class="text-xs text-neutral-500 uppercase tracking-wide">
-							Your Combos
+							Your Saved Combos
 						</p>
 						<div class="flex gap-2">
 							<button
