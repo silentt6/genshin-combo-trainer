@@ -1,5 +1,5 @@
-import { createContext, useContext, createSignal, type JSX } from 'solid-js';
-import { useNavigate } from '@solidjs/router';
+import { createContext, useContext, createSignal } from 'solid-js';
+import { useNavigate, type RouteSectionProps } from '@solidjs/router';
 
 interface ShellConfig {
 	title: string;
@@ -16,7 +16,7 @@ export function useShellConfig(config: ShellConfig) {
 	setConfig?.(config);
 }
 
-export function AppShell(props: { children: JSX.Element }) {
+export function AppShell(props: RouteSectionProps<unknown>) {
 	const navigate = useNavigate();
 	const [config, setConfig] = createSignal<ShellConfig>({
 		title: 'Combo Trainer',
