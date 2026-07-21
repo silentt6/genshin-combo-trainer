@@ -11,6 +11,7 @@ import { BUILT_IN_COMBOS } from '../data/builtInCombos';
 import { useShellConfig } from '../components/AppShell';
 
 const COUNTDOWN_MS = 3000;
+const START_DELAY_MS = 1000;
 
 export default function PlayScreen() {
 	const params = useParams();
@@ -39,6 +40,8 @@ export default function PlayScreen() {
 		capture.start();
 
 		const initialStartMs = performance.now() + COUNTDOWN_MS;
+		const gameplayStartMs = initialStartMs + START_DELAY_MS;
+
 		const loopIntervalMs = activeCombo.loopIntervalMs ?? 1000;
 		const lastStepEndMs = Math.max(
 			0,
@@ -48,27 +51,25 @@ export default function PlayScreen() {
 		);
 		const cycleDurationMs = lastStepEndMs + loopIntervalMs;
 
-		let judge = new Judge();
+		const judge = new Judge();
 		let pendingSteps = [...activeCombo.steps];
-		let handledStray = new Set<number>();
+		const handledStray = new Set<number>();
 		let lastCycleIndex = -1;
 
 		const loop = new GameLoop(
 			(now) => {
 				if (!isPlaying()) return;
-				if (now < initialStartMs) return;
+				if (now < gameplayStartMs) return;
 
-				const elapsed = now - initialStartMs;
+				const elapsed = now - gameplayStartMs;
 				const cycleIndex = Math.floor(elapsed / cycleDurationMs);
 
 				if (cycleIndex !== lastCycleIndex) {
-					judge = new Judge();
 					pendingSteps = [...activeCombo.steps];
-					handledStray = new Set();
 					lastCycleIndex = cycleIndex;
 				}
 
-				const cycleStartMs = initialStartMs + cycleIndex * cycleDurationMs;
+				const cycleStartMs = gameplayStartMs + cycleIndex * cycleDurationMs;
 				const allEvents = buffer.getUnconsumed(-1);
 
 				for (let i = pendingSteps.length - 1; i >= 0; i--) {
@@ -97,7 +98,7 @@ export default function PlayScreen() {
 				}
 			},
 			(now) => {
-				renderer.render(now, activeCombo, initialStartMs, cycleDurationMs);
+				renderer.render(now, activeCombo, gameplayStartMs, cycleDurationMs);
 
 				if (now < initialStartMs) {
 					hudApi.setCountdown(Math.ceil((initialStartMs - now) / 1000));
