@@ -38,7 +38,7 @@ export function Track(props: {
 			onMouseLeave={props.onTrackMouseLeave}
 			onClick={props.onTrackClick}
 		>
-			<div class="absolute left-2 top-1 text-[11px] text-neutral-500 font-mono pointer-events-none z-10">
+			<div class="absolute left-2 top-1 text-[11px] text-neutral-500 font-mono pointer-events-none z-10 select-none">
 				{props.track.label}
 			</div>
 

@@ -403,7 +403,7 @@ export function ComboEditor(props: {
 			const events = buffer.getUnconsumed(-1);
 			if (events.length > 0 && startTime === null) {
 				startTime = events[0].timestamp;
-				setRecordStatus('Recording... press Enter to stop.');
+				setRecordStatus('Recording inputs... press ENTER to stop.');
 			}
 			if (startTime !== null)
 				setLiveSteps(

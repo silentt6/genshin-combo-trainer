@@ -30,12 +30,12 @@ export function EditorToolbar(props: {
 					class={`cursor-pointer px-4 py-2 rounded-lg font-medium transition-colors ${
 						props.isRecording
 							? 'bg-red-600 text-white'
-							: 'bg-neutral-900 border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white'
+							: 'bg-red-900 border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white'
 					}`}
 					onClick={props.onRecord}
 					disabled={props.isRecording}
 				>
-					{props.isRecording ? '● Recording' : 'Record'}
+					{props.isRecording ? '● Recording...' : 'Record inputs'}
 				</button>
 				<button
 					class="cursor-pointer bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
@@ -69,7 +69,7 @@ export function EditorToolbar(props: {
 				>
 					⬚ Select
 				</button>
-				<span class="text-xs text-neutral-600 ml-2">
+				<span class="text-sm text-neutral-400 ml-2">
 					{props.tool === 'pencil'
 						? 'Left-click to add, right-click an action to delete.'
 						: 'Click or drag a rectangle to select, Shift+click for multiple, drag to move, Delete to remove.'}

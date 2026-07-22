@@ -12,13 +12,13 @@ export const LANES: LaneConfig[] = [
 		label: 'Attack — Left Click',
 		inputs: ['mouse-left'],
 		color: '#38bdf8',
-		x: 0.35,
+		x: 0.4,
 	},
 	{
 		id: 'evade',
 		label: 'Evade — Right Click / Shift',
 		inputs: ['mouse-right', 'shift'],
 		color: '#facc15',
-		x: 0.65,
+		x: 0.6,
 	},
 ];

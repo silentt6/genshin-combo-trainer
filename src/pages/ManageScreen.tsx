@@ -67,7 +67,10 @@ export default function ManageScreen() {
 		<>
 			<div class="max-w-5xl mx-auto px-8 py-10">
 				<section class="mb-10">
-					<p class="text-xs text-neutral-500 uppercase tracking-wide mb-3">
+					<p
+						class="text-xs text-neutral-500 uppercase tracking-wide mb-3"
+						title="Combos that are built into the app and cannot be modified."
+					>
 						Built-in Combos
 					</p>
 					<div class="flex flex-col gap-1 rounded-lg border border-neutral-900">
@@ -78,7 +81,7 @@ export default function ManageScreen() {
 										class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 										onClick={() => navigate(`/editor/${combo.id}`)}
 									>
-										Edit
+										Duplicate (Edit)
 									</button>
 									<button
 										class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
@@ -94,7 +97,10 @@ export default function ManageScreen() {
 
 				<section>
 					<div class="flex items-center justify-between mb-3">
-						<p class="text-xs text-neutral-500 uppercase tracking-wide">
+						<p
+							class="text-xs text-neutral-500 uppercase tracking-wide"
+							title="Combos you have saved in your browser's local storage."
+						>
 							Your Saved Combos
 						</p>
 						<div class="flex gap-2">

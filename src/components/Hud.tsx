@@ -105,7 +105,7 @@ export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 
 				{showFeedback() && lastFeedback() && (
 					<div
-						class={`absolute top-16 left-1/2 -translate-x-1/2 text-4xl font-bold uppercase ${verdictColor(lastFeedback()?.verdict)}`}
+						class={`absolute bottom-12 left-1/2 -translate-x-1/2 text-4xl font-bold uppercase ${verdictColor(lastFeedback()?.verdict)}`}
 					>
 						{lastFeedback()?.label}
 					</div>
