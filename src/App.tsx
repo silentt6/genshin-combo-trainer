@@ -5,9 +5,11 @@ import ManageScreen from './pages/ManageScreen';
 import PlayScreen from './pages/PlayScreen';
 import EditorScreen from './pages/EditorScreen';
 
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 export default function App() {
 	return (
-		<Router root={AppShell} base={import.meta.env.BASE_URL}>
+		<Router root={AppShell} base={basePath}>
 			<Route path="/" component={Home} />
 			<Route path="/manage" component={ManageScreen} />
 			<Route path="/play/:comboId" component={PlayScreen} />
