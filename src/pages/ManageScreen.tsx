@@ -82,14 +82,14 @@ export default function ManageScreen() {
 										class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 										onClick={() => navigate(`/editor/${combo.id}`)}
 									>
-										Duplicate (Edit)
+										Duplicate (Open on Editor)
 									</button>
-									<button
+									{/* <button
 										class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 										onClick={() => handleCopy(combo)}
 									>
 										{copiedId() === combo.id ? 'Copied!' : 'Copy JSON'}
-									</button>
+									</button> */}
 								</ComboRow>
 							)}
 						</For>
@@ -120,8 +120,9 @@ export default function ManageScreen() {
 							<button
 								class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 								onClick={handleExport}
+								title="This will prompt you to download a .json file, which can be used to back up your combos or import them into another browser or PC."
 							>
-								Export All
+								Export All (Backup)
 							</button>
 						</div>
 					</div>
@@ -141,8 +142,11 @@ export default function ManageScreen() {
 										<button
 											class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 											onClick={() => handleCopy(combo)}
+											title="This will copy the combo settings to your clipboard (Same as Ctrl+C), which you can then share with others or import later (Same as Ctrl+V)."
 										>
-											{copiedId() === combo.id ? 'Copied!' : 'Copy JSON'}
+											{copiedId() === combo.id
+												? 'Copied to clipboard!'
+												: 'Share'}
 										</button>
 										<button
 											class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
