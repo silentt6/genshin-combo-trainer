@@ -5,7 +5,14 @@ export interface ComboFile {
 	combos: Combo[];
 }
 
-const VALID_INPUTS: InputKind[] = ['mouse-left', 'mouse-right', 'shift'];
+const VALID_INPUTS: InputKind[] = [
+	'mouse-left',
+	'mouse-right',
+	'shift',
+	'q',
+	'e',
+	'space',
+];
 const VALID_ACTION_KINDS: ActionKind[] = ['tap', 'hold'];
 
 const MAX_STEPS_PER_COMBO = 500;

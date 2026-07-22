@@ -1,8 +1,13 @@
-import type { Step, InputEvent } from '../engine/types';
+import type { Step, InputEvent, InputKind } from '../engine/types';
 import { DEFAULT_MIN_HOLD_MS } from '../engine/types';
 import { LANES as TRACKS } from './laneConfig';
 import type { LaneConfig } from './laneConfig';
 import { TAP_WIDTH_MS, EVADE_DEBOUNCE_MS } from './editorConstants';
+
+export const HOLD_CAPABLE_LANES: Set<LaneConfig['id']> = new Set([
+	'attack',
+	'skill',
+]);
 
 export function trackForStep(step: Step): LaneConfig {
 	return (
@@ -15,6 +20,10 @@ export function stepWidthMs(step: Step): number {
 	return step.actionKind === 'hold'
 		? (step.minHoldMs ?? DEFAULT_MIN_HOLD_MS)
 		: TAP_WIDTH_MS;
+}
+
+export function laneSupportsHold(track: LaneConfig): boolean {
+	return HOLD_CAPABLE_LANES.has(track.id);
 }
 
 export function hasOverlap(
@@ -57,6 +66,8 @@ function dedupeEvadeEvents(events: InputEvent[]): InputEvent[] {
 	return events.filter((ev) => !suppressed.has(ev.sequence));
 }
 
+const HOLD_CAPABLE_INPUTS: Set<InputKind> = new Set(['mouse-left', 'e']);
+
 export function buildStepsFromEvents(
 	rawEvents: InputEvent[],
 	baseMs: number,
@@ -70,11 +81,23 @@ export function buildStepsFromEvents(
 	for (const ev of events) {
 		if (ev.action !== 'down' || consumed.has(ev.sequence)) continue;
 
-		if (ev.input === 'mouse-left') {
+		if (ev.input === 'mouse-right' || ev.input === 'shift') {
+			consumed.add(ev.sequence);
+			const targetMs = Math.round(ev.timestamp - baseMs);
+			steps.push({
+				id: steps.length + 1,
+				inputs: ['mouse-right', 'shift'],
+				actionKind: 'tap',
+				targetMs,
+			});
+			continue;
+		}
+
+		if (HOLD_CAPABLE_INPUTS.has(ev.input)) {
 			const up = events.find(
 				(u) =>
 					u.action === 'up' &&
-					u.input === 'mouse-left' &&
+					u.input === ev.input &&
 					u.timestamp > ev.timestamp &&
 					!consumed.has(u.sequence),
 			);
@@ -86,7 +109,7 @@ export function buildStepsFromEvents(
 				const holdMs = Math.round(up.timestamp - ev.timestamp);
 				steps.push({
 					id: steps.length + 1,
-					inputs: ['mouse-left'],
+					inputs: [ev.input],
 					actionKind: holdMs > 150 ? 'hold' : 'tap',
 					targetMs,
 					minHoldMs: holdMs > 150 ? holdMs : undefined,
@@ -95,22 +118,23 @@ export function buildStepsFromEvents(
 				const heldSoFar = Math.round(nowMs - ev.timestamp);
 				steps.push({
 					id: steps.length + 1,
-					inputs: ['mouse-left'],
+					inputs: [ev.input],
 					actionKind: heldSoFar > 150 ? 'hold' : 'tap',
 					targetMs,
 					minHoldMs: heldSoFar > 150 ? heldSoFar : undefined,
 				});
 			}
-		} else if (ev.input === 'mouse-right' || ev.input === 'shift') {
-			consumed.add(ev.sequence);
-			const targetMs = Math.round(ev.timestamp - baseMs);
-			steps.push({
-				id: steps.length + 1,
-				inputs: ['mouse-right', 'shift'],
-				actionKind: 'tap',
-				targetMs,
-			});
+			continue;
 		}
+
+		consumed.add(ev.sequence);
+		const targetMs = Math.round(ev.timestamp - baseMs);
+		steps.push({
+			id: steps.length + 1,
+			inputs: [ev.input],
+			actionKind: 'tap',
+			targetMs,
+		});
 	}
 
 	return steps

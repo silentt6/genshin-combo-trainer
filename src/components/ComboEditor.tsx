@@ -9,6 +9,7 @@ import {
 	stepWidthMs,
 	hasOverlap,
 	buildStepsFromEvents,
+	laneSupportsHold,
 } from '../data/editorHelpers';
 import {
 	PIXELS_PER_MS,
@@ -351,6 +352,7 @@ export function ComboEditor(props: {
 		const step = selectedStep();
 		if (!step) return;
 		const track = trackForStep(step);
+		if (!laneSupportsHold(track)) return;
 		if (
 			hasOverlap(
 				props.combo.steps,
@@ -523,6 +525,7 @@ export function ComboEditor(props: {
 			<Show when={selectedStep()}>
 				<StepInspector
 					step={selectedStep()!}
+					allowHold={laneSupportsHold(trackForStep(selectedStep()!))}
 					onUpdate={(patch) => updateStep(selectedStep()!.id, patch)}
 					onConvertToHold={convertToHold}
 					onDelete={deleteSelected}

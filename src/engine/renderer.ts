@@ -1,12 +1,27 @@
 import { LANES } from '../data/laneConfig';
-import type { Combo, InputKind } from './types';
-import { DEFAULT_MIN_HOLD_MS } from './types';
+import type { LaneConfig } from '../data/laneConfig';
+import { DEFAULT_MIN_HOLD_MS, type Combo } from './types';
 
-export interface LaneConfig {
-	id: 'attack' | 'evade';
-	inputs: InputKind[];
+const LANE_SPACING = 0.08;
+
+interface PositionedLane extends LaneConfig {
 	x: number;
-	color: string;
+}
+
+function getActiveLanes(combo: Combo): PositionedLane[] {
+	const active = LANES.filter((lane) =>
+		combo.steps.some((step) =>
+			lane.inputs.some((i) => step.inputs.includes(i)),
+		),
+	);
+
+	const totalWidth = LANE_SPACING * Math.max(0, active.length - 1);
+	const startX = 0.5 - totalWidth / 2;
+
+	return active.map((lane, index) => ({
+		...lane,
+		x: startX + index * LANE_SPACING,
+	}));
 }
 
 const HIT_LINE_Y_RATIO = 0.85;
@@ -55,6 +70,8 @@ export class Renderer {
 
 		ctx.clearRect(0, 0, width, height);
 
+		const activeLanes = getActiveLanes(combo);
+
 		const hitLineY = height * HIT_LINE_Y_RATIO;
 		ctx.strokeStyle = '#ffffff';
 		ctx.lineWidth = 2;
@@ -63,7 +80,7 @@ export class Renderer {
 		ctx.lineTo(width, hitLineY);
 		ctx.stroke();
 
-		for (const lane of LANES) {
+		for (const lane of activeLanes) {
 			ctx.fillStyle = 'rgba(255,255,255,0.05)';
 			ctx.fillRect(lane.x * width - 40, 0, 80, height);
 		}
@@ -77,7 +94,7 @@ export class Renderer {
 			const cycleStartMs = initialStartMs + cycleIndex * cycleDurationMs;
 
 			for (const step of combo.steps) {
-				const lane = LANES.find((l) =>
+				const lane = activeLanes.find((l) =>
 					l.inputs.some((i) => step.inputs.includes(i)),
 				);
 				if (!lane) continue;

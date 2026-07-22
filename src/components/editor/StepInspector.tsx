@@ -4,6 +4,7 @@ import { DEFAULT_MIN_HOLD_MS } from '../../engine/types';
 
 export function StepInspector(props: {
 	step: Step;
+	allowHold: boolean;
 	onUpdate: (patch: Partial<Step>) => void;
 	onConvertToHold: () => void;
 	onDelete: () => void;
@@ -22,7 +23,7 @@ export function StepInspector(props: {
 				/>
 			</label>
 
-			<Show when={props.step.actionKind === 'tap'}>
+			<Show when={props.step.actionKind === 'tap' && props.allowHold}>
 				<button
 					class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 text-neutral-300 hover:text-white transition-colors"
 					onClick={props.onConvertToHold}

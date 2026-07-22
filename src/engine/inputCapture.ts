@@ -43,14 +43,36 @@ export class InputCapture {
 	};
 
 	private handleKeyDown = (e: KeyboardEvent): void => {
-		if (e.key !== 'Shift' || e.repeat) return;
-		this.buffer.push('shift', 'down', performance.now());
+		const input = this.mapKey(e.key);
+		if (input === null) return;
+		if (input === 'space') e.preventDefault();
+		if (e.repeat) return;
+		this.buffer.push(input, 'down', performance.now());
 	};
 
 	private handleKeyUp = (e: KeyboardEvent): void => {
-		if (e.key !== 'Shift') return;
-		this.buffer.push('shift', 'up', performance.now());
+		const input = this.mapKey(e.key);
+		if (input === null) return;
+		if (input === 'space') e.preventDefault();
+		this.buffer.push(input, 'up', performance.now());
 	};
+
+	private mapKey(key: string): InputKind | null {
+		switch (key) {
+			case 'Shift':
+				return 'shift';
+			case 'q':
+			case 'Q':
+				return 'q';
+			case 'e':
+			case 'E':
+				return 'e';
+			case ' ':
+				return 'space';
+			default:
+				return null;
+		}
+	}
 
 	private mapMouseButton(button: number): InputKind | null {
 		if (button === 0) return 'mouse-left';

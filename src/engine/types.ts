@@ -1,4 +1,10 @@
-export type InputKind = 'mouse-left' | 'mouse-right' | 'shift';
+export type InputKind =
+	| 'mouse-left'
+	| 'mouse-right'
+	| 'shift'
+	| 'q'
+	| 'e'
+	| 'space';
 
 export type InputAction = 'down' | 'up';
 
