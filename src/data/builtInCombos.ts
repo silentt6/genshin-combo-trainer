@@ -93,5 +93,6 @@ export const BUILT_IN_COMBOS: Combo[] = [
 			},
 		],
 		author: '@Speify<3',
+		loopIntervalMs: 1500,
 	},
 ];

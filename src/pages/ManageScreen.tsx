@@ -121,7 +121,7 @@ export default function ManageScreen() {
 								class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
 								onClick={handleExport}
 							>
-								Export
+								Export All
 							</button>
 						</div>
 					</div>
