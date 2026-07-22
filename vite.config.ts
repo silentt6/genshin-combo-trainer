@@ -4,4 +4,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
 	plugins: [solid(), tailwindcss()],
+	base: '/genshin-combo-trainer/',
+	build: {
+		target: 'esnext',
+	},
 });

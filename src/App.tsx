@@ -7,7 +7,7 @@ import EditorScreen from './pages/EditorScreen';
 
 export default function App() {
 	return (
-		<Router root={AppShell}>
+		<Router root={AppShell} base={import.meta.env.BASE_URL}>
 			<Route path="/" component={Home} />
 			<Route path="/manage" component={ManageScreen} />
 			<Route path="/play/:comboId" component={PlayScreen} />
