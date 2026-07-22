@@ -69,6 +69,9 @@ export function isValidCombo(value: unknown): value is Combo {
 
 	if (!isSafeString(c.id, 200)) return false;
 	if (!isSafeString(c.name, MAX_NAME_LENGTH)) return false;
+	if (c.author !== undefined) {
+		if (!isSafeString(c.author, MAX_NAME_LENGTH)) return false;
+	}
 	if (
 		!isFiniteNumber(c.scrollSpeed) ||
 		c.scrollSpeed <= 0 ||
@@ -91,6 +94,15 @@ export function isValidCombo(value: unknown): value is Combo {
 
 	const ids = (c.steps as Step[]).map((s) => s.id);
 	if (new Set(ids).size !== ids.length) return false;
+
+	if (c.scrollSpeed !== undefined) {
+		if (
+			!isFiniteNumber(c.scrollSpeed) ||
+			c.scrollSpeed <= 0 ||
+			c.scrollSpeed > 10
+		)
+			return false;
+	}
 
 	return true;
 }

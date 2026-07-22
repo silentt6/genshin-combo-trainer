@@ -6,6 +6,7 @@ import {
 	deleteCombo,
 	exportCombosAsJson,
 	exportComboAsJson,
+	generateComboId,
 } from '../data/storage';
 import { BUILT_IN_COMBOS } from '../data/builtInCombos';
 import { ImportComboModal } from '../components/ImportComboModal';
@@ -48,9 +49,9 @@ export default function ManageScreen() {
 
 	const handleCreateNew = (): void => {
 		const newCombo: Combo = {
-			id: crypto.randomUUID(),
+			id: generateComboId(),
 			name: 'New Combo',
-			scrollSpeed: 0.3,
+			scrollSpeed: 0.4,
 			steps: [],
 		};
 		saveCombo(newCombo);
@@ -136,37 +137,29 @@ export default function ManageScreen() {
 						<div class="flex flex-col gap-1 rounded-lg border border-neutral-900">
 							<For each={savedCombos()}>
 								{(combo) => (
-									<div class="flex items-center justify-between px-4 py-3 border-b border-neutral-900 last:border-b-0">
-										<div>
-											<p class="font-medium">{combo.name}</p>
-											<p class="text-xs text-neutral-500">
-												{combo.steps.length} steps
-											</p>
-										</div>
-										<div class="flex gap-2">
-											<button
-												class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
-												onClick={() => handleCopy(combo)}
-											>
-												{copiedId() === combo.id ? 'Copied!' : 'Copy JSON'}
-											</button>
-											<button
-												class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
-												onClick={() => navigate(`/editor/${combo.id}`)}
-											>
-												Edit
-											</button>
-											<button
-												class="cursor-pointer text-sm text-neutral-500 hover:text-red-400 border border-neutral-800 hover:border-red-900 rounded-lg px-3 py-1.5 transition-colors"
-												onClick={() => {
-													deleteCombo(combo.id);
-													refreshSaved();
-												}}
-											>
-												Delete
-											</button>
-										</div>
-									</div>
+									<ComboRow combo={combo}>
+										<button
+											class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
+											onClick={() => handleCopy(combo)}
+										>
+											{copiedId() === combo.id ? 'Copied!' : 'Copy JSON'}
+										</button>
+										<button
+											class="cursor-pointer text-sm border border-neutral-800 hover:border-neutral-600 text-neutral-300 hover:text-white rounded-lg px-3 py-1.5 transition-colors"
+											onClick={() => navigate(`/editor/${combo.id}`)}
+										>
+											Edit
+										</button>
+										<button
+											class="cursor-pointer text-sm text-neutral-500 hover:text-red-400 border border-neutral-800 hover:border-red-900 rounded-lg px-3 py-1.5 transition-colors"
+											onClick={() => {
+												deleteCombo(combo.id);
+												refreshSaved();
+											}}
+										>
+											Delete
+										</button>
+									</ComboRow>
 								)}
 							</For>
 						</div>

@@ -63,6 +63,7 @@ export class Renderer {
 		combo: Combo,
 		initialStartMs: number,
 		cycleDurationMs: number,
+		scrollSpeed: number,
 	): void {
 		const { ctx } = this;
 		const width = this.cssWidth;
@@ -101,7 +102,7 @@ export class Renderer {
 
 				const targetAbsoluteMs = cycleStartMs + step.targetMs;
 				const msUntilHit = targetAbsoluteMs - nowMs;
-				const y = hitLineY - msUntilHit * combo.scrollSpeed;
+				const y = hitLineY - msUntilHit * scrollSpeed;
 
 				if (step.actionKind === 'tap') {
 					if (y < -TAP_RADIUS || y > height + TAP_RADIUS) continue;
@@ -112,7 +113,7 @@ export class Renderer {
 					ctx.fill();
 				} else {
 					const minHold = step.minHoldMs ?? DEFAULT_MIN_HOLD_MS;
-					const barHeight = minHold * combo.scrollSpeed;
+					const barHeight = minHold * scrollSpeed;
 					const barTopY = y - barHeight;
 					if (barTopY > height + TAP_RADIUS || y < -TAP_RADIUS) continue;
 

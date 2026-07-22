@@ -5,6 +5,16 @@ import { isValidComboFile, safeParseComboJson } from './schema';
 const STORAGE_KEY = 'genshin-combo-trainer:combos';
 const CURRENT_VERSION = 1;
 
+export function generateComboId(): string {
+	if (
+		typeof crypto !== 'undefined' &&
+		typeof crypto.randomUUID === 'function'
+	) {
+		return crypto.randomUUID();
+	}
+	return `combo-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function loadCombos(): Combo[] {
 	const raw = localStorage.getItem(STORAGE_KEY);
 	if (raw === null) return [];
@@ -63,10 +73,27 @@ export function exportComboAsJson(combo: Combo): string {
 export function importCombosFromJson(json: string): {
 	ok: boolean;
 	error?: string;
+	renamedCount?: number;
 } {
 	const result = safeParseComboJson(json);
 	if (!result.ok) return { ok: false, error: result.error };
 
-	saveCombos(result.file.combos);
-	return { ok: true };
+	const existing = loadCombos();
+	const existingIds = new Set(existing.map((c) => c.id));
+	let renamedCount = 0;
+
+	const incoming = result.file.combos.map((combo) => {
+		if (!existingIds.has(combo.id)) {
+			existingIds.add(combo.id);
+			return combo;
+		}
+
+		renamedCount += 1;
+		const newId = generateComboId();
+		existingIds.add(newId);
+		return { ...combo, id: newId, name: `${combo.name} (imported)` };
+	});
+
+	saveCombos([...existing, ...incoming]);
+	return { ok: true, renamedCount };
 }

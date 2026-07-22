@@ -30,8 +30,8 @@ export interface Step {
 export interface Combo {
 	id: string;
 	name: string;
-	bpm?: number;
-	scrollSpeed: number;
+	author?: string;
+	scrollSpeed?: number;
 	loopIntervalMs?: number;
 	steps: Step[];
 }

@@ -15,6 +15,18 @@ export function ComboSettings(props: {
 				}
 				disabled={props.disabled}
 			/>
+			<input
+				class="bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-lg font-mono flex focus:outline-none focus:border-neutral-600"
+				placeholder="Author (optional)"
+				value={props.combo.author ?? ''}
+				onInput={(e) =>
+					props.onChange({
+						...props.combo,
+						author: e.currentTarget.value || undefined,
+					})
+				}
+				disabled={props.disabled}
+			/>
 			<label class="flex flex-col text-xs text-neutral-500">
 				Loop Interval (ms)
 				<input

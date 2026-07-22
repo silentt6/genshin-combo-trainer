@@ -79,6 +79,9 @@ export default function Home() {
 											{combo.source === 'built-in' ? 'Built-in' : 'Saved'}
 										</span>
 									</div>
+									<p class="text-xs text-neutral-500">
+										{combo.author && `A courtesy of ${combo.author}`}
+									</p>
 									<span class="text-xs text-neutral-500">
 										{combo.steps.length} steps
 									</span>
