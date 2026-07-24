@@ -7,6 +7,8 @@ export interface JudgmentPopup {
 	key: number;
 	laneId: string;
 	verdict: Verdict;
+	jitterX: number;
+	jitterY: number;
 }
 
 export function LaneHud(props: {
@@ -59,7 +61,7 @@ export function LaneHud(props: {
 											width: '52px',
 											height: '52px',
 											border: `2px solid ${verdictColor(verdict())}`,
-											animation: 'lane-ripple 400ms ease-out forwards',
+											animation: 'lane-ripple 350ms ease-out forwards',
 										}}
 									/>
 								)}
@@ -76,8 +78,8 @@ export function LaneHud(props: {
 
 					return (
 						<PopupText
-							x={lane.x * props.width}
-							y={props.hitLineY - 50}
+							x={lane.x * props.width + popup.jitterX}
+							y={props.hitLineY - 50 + popup.jitterY}
 							verdict={popup.verdict}
 							onDone={() => props.onPopupDone(popup.key)}
 						/>

@@ -54,7 +54,9 @@ export default function PlayScreen() {
 
 		popupKey += 1;
 		const key = popupKey;
-		setPopups((p) => [...p, { key, laneId, verdict }]);
+		const jitterX = (Math.random() - 0.5) * 80; // ±40px
+		const jitterY = (Math.random() - 0.5) * 40; // ±20px
+		setPopups((p) => [...p, { key, laneId, verdict, jitterX, jitterY }]);
 	};
 
 	const removePopup = (key: number): void => {
@@ -173,10 +175,18 @@ export default function PlayScreen() {
 
 				const cycleStartMs = gameplayStartMs + cycleIndex * cycleDurationMs;
 				const allEvents = buffer.getUnconsumed(-1);
+				const gameplayEvents = allEvents.filter(
+					(e) => e.timestamp > gameplayStartMs - START_DELAY_MS / 4,
+				);
 
 				for (let i = pendingSteps.length - 1; i >= 0; i--) {
 					const step = pendingSteps[i];
-					const result = judge.classify(step, cycleStartMs, now, allEvents);
+					const result = judge.classify(
+						step,
+						cycleStartMs,
+						now,
+						gameplayEvents,
+					);
 					if (result !== null) {
 						hudApi.reportResult(result);
 						const laneForThisStep = laneForInputs(step.inputs);
@@ -186,7 +196,7 @@ export default function PlayScreen() {
 					}
 				}
 
-				for (const event of allEvents) {
+				for (const event of gameplayEvents) {
 					if (event.action !== 'down') continue;
 					if (judge.isConsumed(event.sequence)) continue;
 					if (handledStray.has(event.sequence)) continue;
