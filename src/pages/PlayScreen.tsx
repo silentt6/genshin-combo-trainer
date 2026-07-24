@@ -4,7 +4,7 @@ import { InputRingBuffer } from '../engine/ringBuffer';
 import { InputCapture } from '../engine/inputCapture';
 import { Judge } from '../engine/judge';
 import { GameLoop } from '../engine/gameLoop';
-import { Renderer } from '../engine/renderer';
+import { HIT_LINE_Y_RATIO, Renderer } from '../engine/renderer';
 import { createHudApi } from '../components/Hud';
 import { loadCombos } from '../data/storage';
 import { BUILT_IN_COMBOS } from '../data/builtInCombos';
@@ -15,6 +15,11 @@ import {
 	MIN_SCROLL_SPEED,
 	MAX_SCROLL_SPEED,
 } from '../data/settings';
+import { getActiveLanes } from '../engine/renderer';
+import type { PositionedLane } from '../engine/renderer';
+import { laneForInputs } from '../data/laneConfig';
+import type { InputKind, Verdict } from '../engine/types';
+import { LaneHud, type JudgmentPopup } from '../components/LaneHud';
 
 const COUNTDOWN_MS = 3000;
 const START_DELAY_MS = 1000;
@@ -26,6 +31,35 @@ export default function PlayScreen() {
 	const { hudApi, Hud } = createHudApi();
 	const [isPlaying] = createSignal(true);
 	const [scrollSpeed, setScrollSpeedSignal] = createSignal(getScrollSpeed());
+	const [pressedLanes, setPressedLanes] = createSignal<Set<string>>(new Set());
+	const [glowByLane, setGlowByLane] = createSignal<Map<string, Verdict>>(
+		new Map(),
+	);
+	const [popups, setPopups] = createSignal<JudgmentPopup[]>([]);
+	const [canvasSize, setCanvasSize] = createSignal({ width: 0, height: 0 });
+	let popupKey = 0;
+
+	const activeLanes = (): PositionedLane[] =>
+		activeCombo ? getActiveLanes(activeCombo) : [];
+
+	const triggerLaneFeedback = (laneId: string, verdict: Verdict): void => {
+		setGlowByLane((m) => new Map(m).set(laneId, verdict));
+		setTimeout(() => {
+			setGlowByLane((m) => {
+				const next = new Map(m);
+				next.delete(laneId);
+				return next;
+			});
+		}, 300);
+
+		popupKey += 1;
+		const key = popupKey;
+		setPopups((p) => [...p, { key, laneId, verdict }]);
+	};
+
+	const removePopup = (key: number): void => {
+		setPopups((p) => p.filter((entry) => entry.key !== key));
+	};
 
 	const handleSpeedChange = (value: number): void => {
 		setScrollSpeedSignal(value);
@@ -50,6 +84,62 @@ export default function PlayScreen() {
 		const capture = new InputCapture(buffer, canvasRef);
 		const renderer = new Renderer(canvasRef);
 		capture.start();
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			const entry = entries[0];
+			if (!entry) return;
+			const { width, height } = entry.contentRect;
+			setCanvasSize({ width, height });
+		});
+		resizeObserver.observe(canvasRef);
+		onCleanup(() => resizeObserver.disconnect());
+
+		const mapKey = (key: string): InputKind | null => {
+			if (key === 'Shift') return 'shift';
+			if (key === 'q' || key === 'Q') return 'q';
+			if (key === 'e' || key === 'E') return 'e';
+			if (key === ' ') return 'space';
+			return null;
+		};
+
+		const setPressed = (input: InputKind, isDown: boolean): void => {
+			const lane = laneForInputs([input]);
+			if (!lane) return;
+			setPressedLanes((s) => {
+				const next = new Set(s);
+				isDown ? next.add(lane.id) : next.delete(lane.id);
+				return next;
+			});
+		};
+
+		const handleVisualMouseDown = (e: MouseEvent): void => {
+			if (e.button === 0) setPressed('mouse-left', true);
+			if (e.button === 2) setPressed('mouse-right', true);
+		};
+		const handleVisualMouseUp = (e: MouseEvent): void => {
+			if (e.button === 0) setPressed('mouse-left', false);
+			if (e.button === 2) setPressed('mouse-right', false);
+		};
+		const handleVisualKeyDown = (e: KeyboardEvent): void => {
+			const input = mapKey(e.key);
+			if (input) setPressed(input, true);
+		};
+		const handleVisualKeyUp = (e: KeyboardEvent): void => {
+			const input = mapKey(e.key);
+			if (input) setPressed(input, false);
+		};
+
+		canvasRef.addEventListener('mousedown', handleVisualMouseDown);
+		canvasRef.addEventListener('mouseup', handleVisualMouseUp);
+		window.addEventListener('keydown', handleVisualKeyDown);
+		window.addEventListener('keyup', handleVisualKeyUp);
+
+		onCleanup(() => {
+			canvasRef?.removeEventListener('mousedown', handleVisualMouseDown);
+			canvasRef?.removeEventListener('mouseup', handleVisualMouseUp);
+			window.removeEventListener('keydown', handleVisualKeyDown);
+			window.removeEventListener('keyup', handleVisualKeyUp);
+		});
 
 		const initialStartMs = performance.now() + COUNTDOWN_MS;
 		const gameplayStartMs = initialStartMs + START_DELAY_MS;
@@ -89,6 +179,9 @@ export default function PlayScreen() {
 					const result = judge.classify(step, cycleStartMs, now, allEvents);
 					if (result !== null) {
 						hudApi.reportResult(result);
+						const laneForThisStep = laneForInputs(step.inputs);
+						if (laneForThisStep)
+							triggerLaneFeedback(laneForThisStep.id, result.verdict);
 						if (result.final) pendingSteps.splice(i, 1);
 					}
 				}
@@ -107,6 +200,8 @@ export default function PlayScreen() {
 						final: true,
 						phase: 'tap',
 					});
+					const strayLane = laneForInputs([event.input]);
+					if (strayLane) triggerLaneFeedback(strayLane.id, 'stray');
 				}
 			},
 			(now) => {
@@ -178,6 +273,15 @@ export default function PlayScreen() {
 			</div>
 
 			<canvas ref={canvasRef} class="w-full h-full block" />
+			<LaneHud
+				lanes={activeLanes()}
+				width={canvasSize().width}
+				hitLineY={canvasSize().height * HIT_LINE_Y_RATIO}
+				pressedLanes={pressedLanes()}
+				glowByLane={glowByLane()}
+				popups={popups()}
+				onPopupDone={removePopup}
+			/>
 			<Hud />
 		</div>
 	);

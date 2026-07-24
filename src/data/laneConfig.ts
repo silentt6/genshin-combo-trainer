@@ -27,3 +27,7 @@ export const LANES: LaneConfig[] = [
 		color: '#facc15',
 	},
 ];
+
+export function laneForInputs(inputs: InputKind[]): LaneConfig | undefined {
+	return LANES.find((l) => l.inputs.some((i) => inputs.includes(i)));
+}

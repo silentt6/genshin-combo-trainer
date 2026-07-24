@@ -4,11 +4,11 @@ import { DEFAULT_MIN_HOLD_MS, type Combo } from './types';
 
 const LANE_SPACING = 0.08;
 
-interface PositionedLane extends LaneConfig {
+export interface PositionedLane extends LaneConfig {
 	x: number;
 }
 
-function getActiveLanes(combo: Combo): PositionedLane[] {
+export function getActiveLanes(combo: Combo): PositionedLane[] {
 	const active = LANES.filter((lane) =>
 		combo.steps.some((step) =>
 			lane.inputs.some((i) => step.inputs.includes(i)),
@@ -24,117 +24,9 @@ function getActiveLanes(combo: Combo): PositionedLane[] {
 	}));
 }
 
-const HIT_LINE_Y_RATIO = 0.85;
+export const HIT_LINE_Y_RATIO = 0.85;
 const TAP_RADIUS = 20;
 const HOLD_BAR_WIDTH = 24;
-const INDICATOR_RADIUS = 16;
-
-function drawMouseIcon(
-	ctx: CanvasRenderingContext2D,
-	x: number,
-	y: number,
-	highlightSide: 'left' | 'right',
-	color: string,
-): void {
-	const width = 20;
-	const height = 28;
-	const left = x - width / 2;
-	const top = y - height / 2;
-	const radius = 9;
-
-	ctx.save();
-
-	ctx.beginPath();
-	ctx.moveTo(left + radius, top);
-	ctx.arcTo(left + width, top, left + width, top + radius, radius);
-	ctx.lineTo(left + width, top + height - radius);
-	ctx.arcTo(
-		left + width,
-		top + height,
-		left + width - radius,
-		top + height,
-		radius,
-	);
-	ctx.lineTo(left + radius, top + height);
-	ctx.arcTo(left, top + height, left, top + height - radius, radius);
-	ctx.lineTo(left, top + radius);
-	ctx.arcTo(left, top, left + radius, top, radius);
-	ctx.closePath();
-
-	ctx.fillStyle = 'rgba(255,255,255,0.08)';
-	ctx.fill();
-	ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-	ctx.lineWidth = 1.5;
-	ctx.stroke();
-
-	ctx.beginPath();
-	const buttonX =
-		highlightSide === 'left' ? left + width * 0.28 : left + width * 0.72;
-	ctx.ellipse(
-		buttonX,
-		top + height * 0.32,
-		width * 0.16,
-		height * 0.18,
-		0,
-		0,
-		Math.PI * 2,
-	);
-	ctx.fillStyle = color;
-	ctx.fill();
-
-	ctx.restore();
-}
-
-function drawTextIndicator(
-	ctx: CanvasRenderingContext2D,
-	x: number,
-	y: number,
-	label: string,
-	color: string,
-): void {
-	ctx.save();
-	ctx.font = label.length > 1 ? 'bold 16px sans-serif' : 'bold 24px sans-serif';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
-	ctx.fillStyle = color;
-	ctx.fillText(label, x, y);
-	ctx.restore();
-}
-
-function drawLaneIndicator(
-	ctx: CanvasRenderingContext2D,
-	lane: PositionedLane,
-	x: number,
-	y: number,
-): void {
-	ctx.save();
-	ctx.beginPath();
-	ctx.arc(x, y, INDICATOR_RADIUS, 0, Math.PI * 2);
-	ctx.fillStyle = 'rgba(0,0,0,1)';
-	ctx.fill();
-	ctx.strokeStyle = lane.color;
-	ctx.lineWidth = 1.5;
-	ctx.stroke();
-	ctx.restore();
-
-	switch (lane.id) {
-		case 'burst':
-			drawTextIndicator(ctx, x, y, 'Q', lane.color);
-			break;
-		case 'skill':
-			drawTextIndicator(ctx, x, y, 'E', lane.color);
-			break;
-		case 'jump':
-			drawTextIndicator(ctx, x, y, 'Space', lane.color);
-			break;
-		case 'attack':
-			drawMouseIcon(ctx, x, y, 'left', lane.color);
-			break;
-		case 'evade':
-			drawMouseIcon(ctx, x, y, 'right', lane.color);
-			break;
-	}
-}
 
 export class Renderer {
 	private ctx: CanvasRenderingContext2D;
@@ -248,10 +140,6 @@ export class Renderer {
 					ctx.stroke();
 				}
 			}
-		}
-
-		for (const lane of activeLanes) {
-			drawLaneIndicator(ctx, lane, lane.x * width, hitLineY);
 		}
 	}
 }

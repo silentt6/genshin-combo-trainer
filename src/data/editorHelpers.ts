@@ -1,6 +1,6 @@
 import type { Step, InputEvent, InputKind } from '../engine/types';
 import { DEFAULT_MIN_HOLD_MS } from '../engine/types';
-import { LANES as TRACKS } from './laneConfig';
+import { laneForInputs, LANES as TRACKS } from './laneConfig';
 import type { LaneConfig } from './laneConfig';
 import { TAP_WIDTH_MS, EVADE_DEBOUNCE_MS } from './editorConstants';
 
@@ -10,10 +10,7 @@ export const HOLD_CAPABLE_LANES: Set<LaneConfig['id']> = new Set([
 ]);
 
 export function trackForStep(step: Step): LaneConfig {
-	return (
-		TRACKS.find((t) => t.inputs.some((i) => step.inputs.includes(i))) ??
-		TRACKS[0]
-	);
+	return laneForInputs(step.inputs) ?? TRACKS[0];
 }
 
 export function stepWidthMs(step: Step): number {

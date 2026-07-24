@@ -13,6 +13,36 @@ interface FeedbackEvent {
 	id: number;
 }
 
+export function verdictColor(v: Verdict): string {
+	switch (v) {
+		case 'perfect':
+			return '#22d3ee';
+		case 'good':
+			return '#4ade80';
+		case 'early':
+			return '#facc15';
+		case 'late':
+			return '#fb923c';
+		case 'released-early':
+			return '#c084fc';
+		case 'miss':
+			return '#ef4444';
+		case 'stray':
+			return '#ef4444';
+	}
+}
+
+export function verdictLabel(v: Verdict): string {
+	switch (v) {
+		case 'released-early':
+			return 'Early Release';
+		case 'stray':
+			return 'Stray';
+		default:
+			return v;
+	}
+}
+
 export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 	const [score, setScore] = createSignal(0);
 	const [streak, setStreak] = createSignal(0);
@@ -68,7 +98,7 @@ export function createHudApi(): { hudApi: HudApi; Hud: () => any } {
 			const event = lastFeedback();
 			if (event === null) return;
 
-			setShowFeedback(true);
+			setShowFeedback(false);
 			clearTimeout(feedbackTimeout);
 			feedbackTimeout = setTimeout(() => setShowFeedback(false), 500);
 		});
